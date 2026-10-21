@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerbMaster - Irregular Verbs Trainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-black text-xl shadow-lg shadow-indigo-500/20 text-white">
+                    V
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold leading-tight text-white flex items-center gap-2">
+                        VerbMaster
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20">87 Verbs</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">English Irregular Verbs Trainer</p>
+                </div>
+            </div>
+
+            <!-- Global Controls & Stats Bar -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <!-- Audio Toggle Button -->
+                <button id="audio-toggle-btn" onclick="toggleAudio()" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 transition active:scale-95">
+                    <span id="audio-icon" class="text-base">🔊</span>
+                    <span id="audio-label" class="hidden sm:inline">Sound On</span>
+                </button>
+
+                <!-- Stats Container -->
+                <div class="flex items-center gap-3 sm:gap-4 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800/80 text-xs sm:text-sm">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-slate-400 hidden sm:inline">Mastered:</span>
+                        <span id="stat-mastered" class="font-bold text-emerald-400">0 / 87</span>
+                    </div>
+                    <div class="h-4 w-px bg-slate-800"></div>
+                    <div>
+                        <span class="text-slate-400 hidden sm:inline">Accuracy:</span>
+                        <span id="stat-accuracy" class="font-bold text-indigo-400">100%</span>
+                    </div>
+                    <button onclick="resetStats()" title="Reset statistics" class="text-slate-500 hover:text-rose-400 transition ml-0.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col gap-5">
+
+        <!-- Navigation Mode Tabs -->
+        <nav class="grid grid-cols-2 sm:grid-cols-5 rounded-xl bg-slate-900/90 p-1.5 border border-slate-800/80 gap-1 text-xs sm:text-sm">
+            <button onclick="switchMode('fill')" id="tab-fill" class="tab-btn py-2.5 px-2 rounded-lg font-medium transition text-center flex items-center justify-center gap-1.5">
+                <span>✍️</span> <span>Fill Forms</span>
+            </button>
+            <button onclick="switchMode('match')" id="tab-match" class="tab-btn py-2.5 px-2 rounded-lg font-medium transition text-center flex items-center justify-center gap-1.5">
+                <span>🧩</span> <span>Match Game</span>
+            </button>
+            <button onclick="switchMode('cards')" id="tab-cards" class="tab-btn py-2.5 px-2 rounded-lg font-medium transition text-center flex items-center justify-center gap-1.5">
+                <span>🎴</span> <span>Cards</span>
+            </button>
+            <button onclick="switchMode('choice')" id="tab-choice" class="tab-btn py-2.5 px-2 rounded-lg font-medium transition text-center flex items-center justify-center gap-1.5">
+                <span>🎯</span> <span>Quiz</span>
+            </button>
+            <button onclick="switchMode('list')" id="tab-list" class="tab-btn col-span-2 sm:col-span-1 py-2.5 px-2 rounded-lg font-medium transition text-center flex items-center justify-center gap-1.5">
+                <span>📖</span> <span>Verb List</span>
+            </button>
+        </nav>
+
+        <!-- Dynamic Practice Content Section -->
+        <div id="app-container" class="flex-1 flex flex-col justify-center min-h-[440px]">
+            <!-- Rendered via JavaScript -->
+        </div>
+
+    </main>
+
+    <footer class="text-center py-4 text-xs text-slate-500 border-t border-slate-900 bg-slate-950">
+        VerbMaster • 87 Core English Irregular Verbs • Mobile Friendly
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // Full dataset of 87 English Irregular Verbs
+        const verbsData = [
+            { v1: "be", v2: "was/were", v3: "been", ru: "быть, являться" },
+            { v1: "become", v2: "became", v3: "become", ru: "становиться" },
+            { v1: "begin", v2: "began", v3: "begun", ru: "начинать(ся)" },
+            { v1: "bend", v2: "bent", v3: "bent", ru: "гнуть, сгибать" },
+            { v1: "bite", v2: "bit", v3: "bitten", ru: "кусать" },
+            { v1: "blow", v2: "blew", v3: "blown", ru: "дуть" },
+            { v1: "break", v2: "broke", v3: "broken", ru: "ломать, разбивать" },
+            { v1: "bring", v2: "brought", v3: "brought", ru: "приносить" },
+            { v1: "build", v2: "built", v3: "built", ru: "строить" },
+            { v1: "burn", v2: "burned/burnt", v3: "burned/burnt", ru: "гореть, жечь" },
+            { v1: "buy", v2: "bought", v3: "bought", ru: "покупать" },
+            { v1: "can", v2: "could", v3: "been able to", ru: "мочь, уметь" },
+            { v1: "catch", v2: "caught", v3: "caught", ru: "ловить, хватать" },
+            { v1: "choose", v2: "chose", v3: "chosen", ru: "выбирать" },
+            { v1: "come", v2: "came", v3: "come", ru: "приходить, приезжать" },
+            { v1: "cost", v2: "cost", v3: "cost", ru: "стоить" },
+            { v1: "cut", v2: "cut", v3: "cut", ru: "резать" },
+            { v1: "do", v2: "did", v3: "done", ru: "делать" },
+            { v1: "draw", v2: "drew", v3: "drawn", ru: "рисовать, чертить" },
+            { v1: "drink", v2: "drank", v3: "drunk", ru: "пить" },
+            { v1: "drive", v2: "drove", v3: "driven", ru: "вести (машину)" },
+            { v1: "eat", v2: "ate", v3: "eaten", ru: "есть, кушать" },
+            { v1: "fall", v2: "fell", v3: "fallen", ru: "падать" },
+            { v1: "feel", v2: "felt", v3: "felt", ru: "чувствовать" },
+            { v1: "fight", v2: "fought", v3: "fought", ru: "драться, бороться" },
+            { v1: "find", v2: "found", v3: "found", ru: "находить" },
+            { v1: "fly", v2: "flew", v3: "flown", ru: "летать" },
+            { v1: "forget", v2: "forgot", v3: "forgotten", ru: "забывать" },
+            { v1: "get", v2: "got", v3: "got/gotten", ru: "получать, становиться" },
+            { v1: "give", v2: "gave", v3: "given", ru: "давать" },
+            { v1: "go", v2: "went", v3: "gone", ru: "идти, ехать" },
+            { v1: "grow", v2: "grew", v3: "grown", ru: "расти, выращивать" },
+            { v1: "hang", v2: "hung", v3: "hung", ru: "висеть, вешать" },
+            { v1: "have", v2: "had", v3: "had", ru: "иметь" },
+            { v1: "hear", v2: "heard", v3: "heard", ru: "слышать" },
+            { v1: "hide", v2: "hid", v3: "hidden", ru: "прятать(ся)" },
+            { v1: "hit", v2: "hit", v3: "hit", ru: "ударять, попадать" },
+            { v1: "keep", v2: "kept", v3: "kept", ru: "держать, сохранять" },
+            { v1: "know", v2: "knew", v3: "known", ru: "знать" },
+            { v1: "lay", v2: "laid", v3: "laid", ru: "класть, положить" },
+            { v1: "lead", v2: "led", v3: "led", ru: "вести, руководить" },
+            { v1: "learn", v2: "learned/learnt", v3: "learned/learnt", ru: "учить(ся)" },
+            { v1: "leave", v2: "left", v3: "left", ru: "покидать, уходить, оставлять" },
+            { v1: "lend", v2: "lent", v3: "lent", ru: "одалживать" },
+            { v1: "lose", v2: "lost", v3: "lost", ru: "терять, проигрывать" },
+            { v1: "make", v2: "made", v3: "made", ru: "делать, создавать" },
+            { v1: "mean", v2: "meant", v3: "meant", ru: "означать, иметь в виду" },
+            { v1: "meet", v2: "met", v3: "met", ru: "встречать(ся)" },
+            { v1: "overcome", v2: "overcame", v3: "overcome", ru: "преодолевать" },
+            { v1: "pay", v2: "paid", v3: "paid", ru: "платить" },
+            { v1: "put", v2: "put", v3: "put", ru: "класть, ставить" },
+            { v1: "read", v2: "read", v3: "read", ru: "читать" },
+            { v1: "ride", v2: "rode", v3: "ridden", ru: "ехать верхом" },
+            { v1: "ring", v2: "rang", v3: "rung", ru: "звенеть, звонить" },
+            { v1: "run", v2: "ran", v3: "run", ru: "бежать" },
+            { v1: "say", v2: "said", v3: "said", ru: "говорить, сказать" },
+            { v1: "see", v2: "saw", v3: "seen", ru: "видеть" },
+            { v1: "sell", v2: "sold", v3: "sold", ru: "продавать" },
+            { v1: "send", v2: "sent", v3: "sent", ru: "посылать, отправлять" },
+            { v1: "set", v2: "set", v3: "set", ru: "устанавливать, ставить" },
+            { v1: "shake", v2: "shook", v3: "shaken", ru: "трясти, качать" },
+            { v1: "shine", v2: "shone", v3: "shone", ru: "сиять, светить" },
+            { v1: "shoot", v2: "shot", v3: "shot", ru: "стрелять" },
+            { v1: "show", v2: "showed", v3: "shown", ru: "показывать" },
+            { v1: "shut", v2: "shut", v3: "shut", ru: "закрывать" },
+            { v1: "sing", v2: "sang", v3: "sung", ru: "петь" },
+            { v1: "sink", v2: "sank", v3: "sunk", ru: "тонуть, погружаться" },
+            { v1: "sit", v2: "sat", v3: "sat", ru: "сидеть" },
+            { v1: "sleep", v2: "slept", v3: "slept", ru: "спать" },
+            { v1: "smell", v2: "smelled/smelt", v3: "smelled/smelt", ru: "пахнуть, нюхать" },
+            { v1: "speak", v2: "spoke", v3: "spoken", ru: "говорить" },
+            { v1: "spell", v2: "spelled/spelt", v3: "spelled/spelt", ru: "писать/произносить по буквам" },
+            { v1: "spend", v2: "spent", v3: "spent", ru: "тратить, проводить (время)" },
+            { v1: "spill", v2: "spilled/spilt", v3: "spilled/spilt", ru: "проливать" },
+            { v1: "stand", v2: "stood", v3: "stood", ru: "стоять" },
+            { v1: "steal", v2: "stole", v3: "stolen", ru: "воровать, красть" },
+            { v1: "swim", v2: "swam", v3: "swum", ru: "плавать" },
+            { v1: "take", v2: "took", v3: "taken", ru: "брать, брать с собой" },
+            { v1: "teach", v2: "taught", v3: "taught", ru: "учить, обучать" },
+            { v1: "tell", v2: "told", v3: "told", ru: "рассказывать, говорить" },
+            { v1: "think", v2: "thought", v3: "thought", ru: "думать" },
+            { v1: "throw", v2: "threw", v3: "thrown", ru: "бросать, кидать" },
+            { v1: "understand", v2: "understood", v3: "understood", ru: "понимать" },
+            { v1: "wake", v2: "woke", v3: "woken", ru: "будить, просыпаться" },
+            { v1: "wear", v2: "wore", v3: "worn", ru: "носить (одежду)" },
+            { v1: "win", v2: "won", v3: "won", ru: "побеждать, выигрывать" },
+            { v1: "write", v2: "wrote", v3: "written", ru: "писать" }
+        ];
+
+        // Application State
+        let audioMuted = localStorage.getItem('verb_audio_muted') === 'true';
+        let currentMode = localStorage.getItem('verb_mode') || 'fill';
+        let verbIndex = parseInt(localStorage.getItem('verb_index') || '0', 10);
+        let flashcardFlipped = false;
+
+        let stats = JSON.parse(localStorage.getItem('verb_stats') || JSON.stringify({
+            mastered: [],
+            totalAttempts: 0,
+            correctAttempts: 0
+        }));
+
+        // Audio System
+        let audioCtx = null;
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+        }
+
+        function toggleAudio() {
+            audioMuted = !audioMuted;
+            localStorage.setItem('verb_audio_muted', audioMuted);
+            updateAudioUI();
+        }
+
+        function updateAudioUI() {
+            const icon = document.getElementById('audio-icon');
+            const label = document.getElementById('audio-label');
+            const btn = document.getElementById('audio-toggle-btn');
+
+            if (audioMuted) {
+                icon.innerText = '🔇';
+                label.innerText = 'Muted';
+                btn.className = "flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs font-semibold text-rose-400 transition active:scale-95";
+            } else {
+                icon.innerText = '🔊';
+                label.innerText = 'Sound On';
+                btn.className = "flex items-center gap-1.5 px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs font-semibold text-slate-300 transition active:scale-95";
+            }
+        }
+
+        function playSoundTone(freq, type, duration) {
+            if (audioMuted) return;
+            try {
+                initAudioContext();
+                if (!audioCtx) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function playSuccessSound() {
+            playSoundTone(523.25, 'sine', 0.15); // C5
+            setTimeout(() => playSoundTone(659.25, 'sine', 0.25), 100); // E5
+        }
+
+        function playErrorSound() {
+            playSoundTone(220, 'sawtooth', 0.2); // A3
+        }
+
+        function speakWord(text) {
+            if (audioMuted) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Statistics Management
+        function updateStatsUI() {
+            document.getElementById('stat-mastered').innerText = `${stats.mastered.length} / ${verbsData.length}`;
+            const accuracy = stats.totalAttempts > 0 
+                ? Math.round((stats.correctAttempts / stats.totalAttempts) * 100) 
+                : 100;
+            document.getElementById('stat-accuracy').innerText = `${accuracy}%`;
+            localStorage.setItem('verb_stats', JSON.stringify(stats));
+        }
+
+        function resetStats() {
+            if (confirm("Reset your learning progress and statistics?")) {
+                stats = { mastered: [], totalAttempts: 0, correctAttempts: 0 };
+                updateStatsUI();
+                renderCurrentMode();
+            }
+        }
+
+        function recordAttempt(verb, isCorrect) {
+            stats.totalAttempts++;
+            if (isCorrect) {
+                stats.correctAttempts++;
+                if (!stats.mastered.includes(verb.v1)) {
+                    stats.mastered.push(verb.v1);
+                }
+            }
+            updateStatsUI();
+        }
+
+        // Navigation
+        function navigateVerb(direction) {
+            flashcardFlipped = false;
+            verbIndex = (verbIndex + direction + verbsData.length) % verbsData.length;
+            localStorage.setItem('verb_index', verbIndex);
+            renderCurrentMode();
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            flashcardFlipped = false;
+            localStorage.setItem('verb_mode', mode);
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = 'tab-btn py-2.5 px-2 rounded-lg font-medium transition text-center flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50';
+            });
+            const activeTab = document.getElementById(`tab-${mode}`);
+            if (activeTab) {
+                activeTab.className = 'tab-btn py-2.5 px-2 rounded-lg font-semibold transition text-center flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30';
+            }
+
+            renderCurrentMode();
+        }
+
+        function renderCurrentMode() {
+            const container = document.getElementById('app-container');
+            const verb = verbsData[verbIndex];
+
+            if (currentMode === 'fill') {
+                renderFillMode(container, verb);
+            } else if (currentMode === 'match') {
+                renderMatchGameMode(container);
+            } else if (currentMode === 'cards') {
+                renderFlashcardMode(container, verb);
+            } else if (currentMode === 'choice') {
+                renderQuizMode(container, verb);
+            } else if (currentMode === 'list') {
+                renderListMode(container);
+            }
+        }
+
+        // ==========================================
+        // Answer Checking Helpers
+        // ==========================================
+        function normalizeAnswer(str) {
+            return str ? str.toLowerCase().trim().replace(/\s+/g, ' ') : '';
+        }
+
+        function isFormCorrect(userInput, targetAnswer) {
+            const cleanUser = normalizeAnswer(userInput);
+            if (!cleanUser) return false;
+
+            const targets = targetAnswer.toLowerCase().split(/[\/,]/).map(s => s.trim());
+            
+            if (targets.includes(cleanUser)) return true;
+
+            const userParts = cleanUser.split(/[\/, ]+/).filter(Boolean);
+            if (userParts.length > 1) {
+                return targets.every(t => userParts.includes(t));
+            }
+
+            return false;
+        }
+
+        // ==========================================
+        // 1. FILL FORMS MODE
+        // ==========================================
+        function renderFillMode(container, verb) {
+            const isMastered = stats.mastered.includes(verb.v1);
+            
+            container.innerHTML = `
+                <div class="max-w-xl mx-auto w-full bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xl">
+                    <div class="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            Verb ${verbIndex + 1} of ${verbsData.length}
+                        </span>
+                        <div class="flex items-center gap-2">
+                            ${isMastered ? '<span class="text-xs bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-medium">✓ Mastered</span>' : ''}
+                            <button onclick="speakWord('${verb.v1}')" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-400 transition" title="Listen pronunciation">
+                                🔊
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-6">
+                        <span class="text-xs font-bold text-indigo-400 tracking-wider uppercase">Infinitive (V1)</span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-1 mb-1">${verb.v1}</h2>
+                        <p class="text-base text-slate-400 font-medium">${verb.ru}</p>
+                    </div>
+
+                    <form id="fill-form" onsubmit="handleFillSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">
+                                Past Simple (V2)
+                            </label>
+                            <input type="text" id="input-v2" autocomplete="off" spellcheck="false" 
+                                class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition text-base"
+                                placeholder="e.g. ${verb.v2.split('/')[0]}" required />
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1.5">
+                                Past Participle (V3)
+                            </label>
+                            <input type="text" id="input-v3" autocomplete="off" spellcheck="false" 
+                                class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition text-base"
+                                placeholder="e.g. ${verb.v3.split('/')[0]}" required />
+                        </div>
+
+                        <div id="fill-feedback-box"></div>
+
+                        <div class="pt-2 flex items-center justify-between gap-2">
+                            <button type="button" onclick="navigateVerb(-1)" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition flex items-center gap-1">
+                                👈 Prev
+                            </button>
+
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="navigateVerb(1)" class="px-4 py-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition">
+                                    Skip ⏭
+                                </button>
+                                <button type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition">
+                                    Check
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const v2Input = document.getElementById('input-v2');
+                if (v2Input) v2Input.focus();
+            }, 50);
+        }
+
+        function handleFillSubmit(event) {
+            event.preventDefault();
+            const verb = verbsData[verbIndex];
+            const v2Val = document.getElementById('input-v2').value;
+            const v3Val = document.getElementById('input-v3').value;
+
+            const v2Correct = isFormCorrect(v2Val, verb.v2);
+            const v3Correct = isFormCorrect(v3Val, verb.v3);
+            const isAllCorrect = v2Correct && v3Correct;
+
+            recordAttempt(verb, isAllCorrect);
+
+            const feedbackBox = document.getElementById('fill-feedback-box');
+            if (isAllCorrect) {
+                playSuccessSound();
+                feedbackBox.innerHTML = `
+                    <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium flex items-center gap-3">
+                        <span class="text-xl">🎉</span>
+                        <div>
+                            <p class="font-bold">Correct!</p>
+                            <p class="text-xs text-emerald-300/80">V2: ${verb.v2} | V3: ${verb.v3}</p>
+                        </div>
+                    </div>
+                `;
+                speakWord(`${verb.v1}, ${verb.v2.replace('/', ' or ')}, ${verb.v3.replace('/', ' or ')}`);
+                setTimeout(() => navigateVerb(1), 1200);
+            } else {
+                playErrorSound();
+                feedbackBox.innerHTML = `
+                    <div class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm font-medium">
+                        <div class="flex items-center gap-2 font-bold text-rose-400 mb-1">
+                            <span>❌ Incorrect</span>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-100">Expected: V2: <span class="text-emerald-400">${verb.v2}</span> | V3: <span class="text-emerald-400">${verb.v3}</span></p>
+                    </div>
+                `;
+            }
+        }
+
+        // ==========================================
+        // 2. MATCHING GAME MODE (🧩 Match Game)
+        // ==========================================
+        let matchGameState = {
+            cards: [],
+            selectedCards: [],
+            matchedVerbs: [],
+            moves: 0,
+            startTime: null,
+            timerInterval: null,
+            elapsedSeconds: 0
+        };
+
+        const MATCH_TYPES = {
+            V1: { label: 'V1 Base', color: 'border-indigo-500/40 text-indigo-300 bg-indigo-500/10' },
+            V2: { label: 'V2 Past', color: 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10' },
+            V3: { label: 'V3 Participle', color: 'border-purple-500/40 text-purple-300 bg-purple-500/10' },
+            RU: { label: 'Translation', color: 'border-amber-500/40 text-amber-300 bg-amber-500/10' }
+        };
+
+        function initMatchGame() {
+            clearInterval(matchGameState.timerInterval);
+
+            // Randomly select 4 verbs
+            const shuffledVerbs = [...verbsData].sort(() => Math.random() - 0.5).slice(0, 4);
+
+            // Generate 16 items (4 items per verb: V1, V2, V3, RU)
+            let cards = [];
+            shuffledVerbs.forEach((verb, verbIdx) => {
+                cards.push(
+                    { id: `card-${verbIdx}-v1`, verbId: verb.v1, text: verb.v1, type: 'V1' },
+                    { id: `card-${verbIdx}-v2`, verbId: verb.v1, text: verb.v2, type: 'V2' },
+                    { id: `card-${verbIdx}-v3`, verbId: verb.v1, text: verb.v3, type: 'V3' },
+                    { id: `card-${verbIdx}-ru`, verbId: verb.v1, text: verb.ru, type: 'RU' }
+                );
+            });
+
+            // Shuffle the cards grid
+            cards.sort(() => Math.random() - 0.5);
+
+            matchGameState = {
+                cards: cards,
+                selectedCards: [],
+                matchedVerbs: [],
+                moves: 0,
+                startTime: Date.now(),
+                elapsedSeconds: 0,
+                timerInterval: setInterval(() => {
+                    matchGameState.elapsedSeconds++;
+                    const timerElem = document.getElementById('match-timer');
+                    if (timerElem) {
+                        const mins = Math.floor(matchGameState.elapsedSeconds / 60);
+                        const secs = matchGameState.elapsedSeconds % 60;
+                        timerElem.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    }
+                }, 1000)
+            };
+        }
+
+        function renderMatchGameMode(container) {
+            if (matchGameState.cards.length === 0 || matchGameState.matchedVerbs.length === 4) {
+                initMatchGame();
+            }
+
+            const mins = Math.floor(matchGameState.elapsedSeconds / 60);
+            const secs = matchGameState.elapsedSeconds % 60;
+            const formattedTime = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+            container.innerHTML = `
+                <div class="max-w-3xl mx-auto w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col gap-4">
+                    <!-- Game Info Header -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                                🧩 Verb Group Matcher
+                            </h2>
+                            <p class="text-xs text-slate-400">Select all 4 forms (V1, V2, V3, RU) for 4 verbs</p>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs sm:text-sm">
+                            <div class="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                                <span class="text-slate-400">Matched:</span>
+                                <span id="match-score" class="font-bold text-emerald-400 ml-1">${matchGameState.matchedVerbs.length} / 4</span>
+                            </div>
+                            <div class="bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                                ⏱️ <span id="match-timer" class="font-mono font-bold text-indigo-400">${formattedTime}</span>
+                            </div>
+                            <button onclick="initMatchGame(); renderCurrentMode();" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Restart Round">
+                                🔄
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4x4 Matching Grid -->
+                    <div id="match-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                        ${matchGameState.cards.map(card => {
+                            const isMatched = matchGameState.matchedVerbs.includes(card.verbId);
+                            const isSelected = matchGameState.selectedCards.some(c => c.id === card.id);
+                            const typeMeta = MATCH_TYPES[card.type];
+
+                            let statusClasses = "bg-slate-950 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900";
+                            if (isMatched) {
+                                statusClasses = "bg-emerald-500/10 border-emerald-500/30 opacity-40 cursor-default";
+                            } else if (isSelected) {
+                                statusClasses = "bg-indigo-600/20 border-indigo-500 ring-2 ring-indigo-500/50 scale-[0.98]";
+                            }
+
+                            return `
+                                <button onclick="handleMatchCardClick('${card.id}')" ${isMatched ? 'disabled' : ''}
+                                    id="${card.id}"
+                                    class="h-24 sm:h-28 p-2.5 rounded-xl border flex flex-col justify-between text-center transition transform active:scale-95 ${statusClasses}">
+                                    <div class="flex items-center justify-between w-full">
+                                        <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${typeMeta.color}">
+                                            ${typeMeta.label}
+                                        </span>
+                                        ${isMatched ? '<span class="text-xs text-emerald-400">✓</span>' : ''}
+                                    </div>
+                                    <span class="text-sm sm:text-base font-bold text-slate-100 my-auto break-words line-clamp-2 px-1">
+                                        ${card.text}
+                                    </span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Completion Modal Overlay if round complete -->
+                    ${matchGameState.matchedVerbs.length === 4 ? `
+                        <div class="mt-2 p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-slate-900 border border-emerald-500/30 text-center animate-fade-in">
+                            <h3 class="text-xl font-black text-emerald-400 mb-1">🎉 Grid Cleared! Excellent Job!</h3>
+                            <p class="text-xs text-slate-300 mb-4">Completed in ${formattedTime} with ${matchGameState.moves} selections.</p>
+                            <button onclick="initMatchGame(); renderCurrentMode();" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-600/30 transition">
+                                Play Next Round 🚀
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function handleMatchCardClick(cardId) {
+            const card = matchGameState.cards.find(c => c.id === cardId);
+            if (!card || matchGameState.matchedVerbs.includes(card.verbId)) return;
+
+            // Prevent selecting multiple cards of the same form type
+            const existingSameType = matchGameState.selectedCards.find(c => c.type === card.type);
+            if (existingSameType) {
+                // Swap selection if clicked same form type
+                matchGameState.selectedCards = matchGameState.selectedCards.filter(c => c.type !== card.type);
+            }
+
+            matchGameState.selectedCards.push(card);
+            matchGameState.moves++;
+
+            // If card is V1, speak pronunciation
+            if (card.type === 'V1') speakWord(card.text);
+
+            // Check if 4 cards are selected
+            if (matchGameState.selectedCards.length === 4) {
+                const targetVerbId = matchGameState.selectedCards[0].verbId;
+                const isAllMatched = matchGameState.selectedCards.every(c => c.verbId === targetVerbId);
+
+                if (isAllMatched) {
+                    playSuccessSound();
+                    matchGameState.matchedVerbs.push(targetVerbId);
+                    
+                    const verbObj = verbsData.find(v => v.v1 === targetVerbId);
+                    if (verbObj) recordAttempt(verbObj, true);
+
+                    matchGameState.selectedCards = [];
+                    if (matchGameState.matchedVerbs.length === 4) {
+                        clearInterval(matchGameState.timerInterval);
+                    }
+                } else {
+                    playErrorSound();
+                    // Shake animation for selected cards
+                    matchGameState.selectedCards.forEach(c => {
+                        const elem = document.getElementById(c.id);
+                        if (elem) elem.classList.add('animate-shake');
+                    });
+
+                    setTimeout(() => {
+                        matchGameState.selectedCards = [];
+                        renderCurrentMode();
+                    }, 500);
+                    return;
+                }
+            }
+
+            renderCurrentMode();
+        }
+
+        // ==========================================
+        // 3. FLASHCARDS MODE
+        // ==========================================
+        function renderFlashcardMode(container, verb) {
+            container.innerHTML = `
+                <div class="max-w-md mx-auto w-full flex flex-col items-center">
+                    <p class="text-xs text-slate-400 mb-3 font-medium uppercase tracking-wider">
+                        Card ${verbIndex + 1} of ${verbsData.length} • Click to flip
+                    </p>
+
+                    <div onclick="toggleCardFlip()" class="w-full h-80 perspective-1000 cursor-pointer group">
+                        <div id="flashcard-inner" class="relative w-full h-full duration-500 transform-style-3d transition-transform shadow-2xl rounded-2xl ${flashcardFlipped ? 'rotate-y-180' : ''}">
+                            
+                            <!-- Front -->
+                            <div class="absolute inset-0 w-full h-full bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between items-center text-center backface-hidden group-hover:border-indigo-500/50 transition">
+                                <div class="w-full flex justify-between items-center text-xs text-slate-500">
+                                    <span>Infinitive (V1)</span>
+                                    <span>Press space/tap</span>
+                                </div>
+                                <div>
+                                    <h2 class="text-4xl font-extrabold text-white mb-2">${verb.v1}</h2>
+                                    <p class="text-lg text-slate-400 font-medium">${verb.ru}</p>
+                                </div>
+                                <div class="text-xs text-indigo-400 font-semibold bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20">
+                                    🔄 Tap to Reveal Forms
+                                </div>
+                            </div>
+
+                            <!-- Back -->
+                            <div class="absolute inset-0 w-full h-full bg-slate-900 border border-indigo-600/40 rounded-2xl p-6 flex flex-col justify-between items-center text-center backface-hidden rotate-y-180 bg-gradient-to-b from-slate-900 to-indigo-950/30">
+                                <div class="w-full flex justify-between items-center text-xs text-slate-400">
+                                    <span>Full Conjugation</span>
+                                    <button onclick="event.stopPropagation(); speakWord('${verb.v1}, ${verb.v2}, ${verb.v3}')" class="text-indigo-400 hover:text-indigo-300">
+                                        🔊 Listen
+                                    </button>
+                                </div>
+
+                                <div class="space-y-3.5 w-full">
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">V1 Infinitive</span>
+                                        <p class="text-lg font-bold text-white">${verb.v1}</p>
+                                    </div>
+                                    <div class="h-px bg-slate-800 w-3/4 mx-auto"></div>
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">V2 Past Simple</span>
+                                        <p class="text-2xl font-black text-emerald-400">${verb.v2}</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">V3 Past Participle</span>
+                                        <p class="text-2xl font-black text-indigo-400">${verb.v3}</p>
+                                    </div>
+                                </div>
+
+                                <p class="text-xs text-slate-400 italic">${verb.ru}</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between w-full mt-6 gap-3">
+                        <button onclick="navigateVerb(-1)" class="flex-1 py-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl font-semibold text-slate-300 text-sm transition">
+                            👈 Previous
+                        </button>
+                        <button onclick="navigateVerb(1)" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-white text-sm shadow-lg shadow-indigo-600/30 transition">
+                            Next Card 👉
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleCardFlip() {
+            flashcardFlipped = !flashcardFlipped;
+            const inner = document.getElementById('flashcard-inner');
+            if (inner) {
+                inner.classList.toggle('rotate-y-180');
+            }
+        }
+
+        // ==========================================
+        // 4. QUIZ MODE
+        // ==========================================
+        let quizState = { answered: false };
+
+        function renderQuizMode(container, verb) {
+            quizState = { answered: false };
+
+            const correctOption = { v2: verb.v2, v3: verb.v3, correct: true };
+            const options = [correctOption];
+
+            while (options.length < 4) {
+                const randomVerb = verbsData[Math.floor(Math.random() * verbsData.length)];
+                if (randomVerb.v1 !== verb.v1 && !options.some(o => o.v2 === randomVerb.v2 && o.v3 === randomVerb.v3)) {
+                    options.push({ v2: randomVerb.v2, v3: randomVerb.v3, correct: false });
+                }
+            }
+
+            const shuffledOptions = options.sort(() => Math.sin(verbIndex + options.length));
+
+            container.innerHTML = `
+                <div class="max-w-xl mx-auto w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                    <div class="flex justify-between items-center text-xs text-slate-400 mb-6 border-b border-slate-800 pb-3">
+                        <span>Quiz Question ${verbIndex + 1} of ${verbsData.length}</span>
+                        <span>Select correct V2 & V3 pair</span>
+                    </div>
+
+                    <div class="text-center mb-6">
+                        <span class="text-xs uppercase font-bold text-indigo-400 tracking-wider">Verb Form V1</span>
+                        <h2 class="text-3xl font-extrabold text-white mt-1">${verb.v1}</h2>
+                        <p class="text-slate-400 text-sm mt-0.5">${verb.ru}</p>
+                    </div>
+
+                    <div id="quiz-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                        ${shuffledOptions.map((opt, idx) => `
+                            <button onclick="handleQuizSelect(${idx}, ${opt.correct})" id="quiz-opt-${idx}" 
+                                class="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-indigo-500/50 text-left transition flex flex-col justify-center">
+                                <span class="text-xs text-slate-500 font-semibold mb-1">Option ${idx + 1}</span>
+                                <span class="text-base font-bold text-white">V2: ${opt.v2}</span>
+                                <span class="text-base font-bold text-indigo-400">V3: ${opt.v3}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div id="quiz-feedback" class="mb-4"></div>
+
+                    <div class="flex justify-between items-center">
+                        <button onclick="navigateVerb(-1)" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-sm font-semibold hover:bg-slate-700 transition">
+                            👈 Prev
+                        </button>
+                        <button onclick="navigateVerb(1)" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 transition">
+                            Skip / Next 👉
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleQuizSelect(optIdx, isCorrect) {
+            if (quizState.answered) return;
+            quizState.answered = true;
+
+            const verb = verbsData[verbIndex];
+            recordAttempt(verb, isCorrect);
+
+            const optBtn = document.getElementById(`quiz-opt-${optIdx}`);
+            const feedbackBox = document.getElementById('quiz-feedback');
+
+            if (isCorrect) {
+                playSuccessSound();
+                optBtn.className = "p-4 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 text-left flex flex-col justify-center";
+                feedbackBox.innerHTML = `
+                    <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-bold flex items-center gap-2">
+                        <span>✅ Excellent! Correct answer.</span>
+                    </div>
+                `;
+                speakWord(`${verb.v1}, ${verb.v2}, ${verb.v3}`);
+                setTimeout(() => navigateVerb(1), 1000);
+            } else {
+                playErrorSound();
+                optBtn.className = "p-4 rounded-xl border-2 border-rose-500 bg-rose-500/10 text-left flex flex-col justify-center";
+                feedbackBox.innerHTML = `
+                    <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm font-medium">
+                        ❌ Incorrect. Correct pair: <strong class="text-emerald-400">V2: ${verb.v2} | V3: ${verb.v3}</strong>
+                    </div>
+                `;
+            }
+        }
+
+        // ==========================================
+        // 5. VERB LIST / DICTIONARY MODE
+        // ==========================================
+        let listSearchQuery = "";
+
+        function renderListMode(container) {
+            const filteredVerbs = verbsData.filter(v => 
+                v.v1.toLowerCase().includes(listSearchQuery) ||
+                v.v2.toLowerCase().includes(listSearchQuery) ||
+                v.v3.toLowerCase().includes(listSearchQuery) ||
+                v.ru.toLowerCase().includes(listSearchQuery)
+            );
+
+            container.innerHTML = `
+                <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col h-[580px]">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white">Irregular Verbs Dictionary</h2>
+                            <p class="text-xs text-slate-400">Showing ${filteredVerbs.length} of ${verbsData.length} verbs</p>
+                        </div>
+                        <input type="text" value="${listSearchQuery}" oninput="handleListSearch(event)" placeholder="Search English or Russian..." 
+                            class="w-full sm:w-64 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto custom-scrollbar border border-slate-800 rounded-xl bg-slate-950">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead class="sticky top-0 bg-slate-900 text-slate-400 border-b border-slate-800 text-[11px] uppercase tracking-wider font-semibold">
+                                <tr>
+                                    <th class="py-3 px-3 sm:px-4">V1 (Infinitive)</th>
+                                    <th class="py-3 px-3 sm:px-4">V2 (Past Simple)</th>
+                                    <th class="py-3 px-3 sm:px-4">V3 (Past Participle)</th>
+                                    <th class="py-3 px-3 sm:px-4">Translation</th>
+                                    <th class="py-3 px-2 text-center">Audio</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60 text-slate-200">
+                                ${filteredVerbs.map((v) => {
+                                    const isMastered = stats.mastered.includes(v.v1);
+                                    return `
+                                        <tr class="hover:bg-slate-900/80 transition">
+                                            <td class="py-3 px-3 sm:px-4 font-bold text-white flex items-center gap-2">
+                                                <span>${v.v1}</span>
+                                                ${isMastered ? '<span class="text-emerald-400 text-xs" title="Mastered">✓</span>' : ''}
+                                            </td>
+                                            <td class="py-3 px-3 sm:px-4 text-emerald-400 font-medium">${v.v2}</td>
+                                            <td class="py-3 px-3 sm:px-4 text-indigo-400 font-medium">${v.v3}</td>
+                                            <td class="py-3 px-3 sm:px-4 text-slate-400">${v.ru}</td>
+                                            <td class="py-3 px-2 text-center">
+                                                <button onclick="speakWord('${v.v1}, ${v.v2}, ${v.v3}')" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-indigo-400 transition" title="Pronounce">
+                                                    🔊
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleListSearch(e) {
+            listSearchQuery = e.target.value.toLowerCase();
+            renderCurrentMode();
+        }
+
+        // Keyboard navigation bindings
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            if (e.key === 'ArrowRight') {
+                navigateVerb(1);
+            } else if (e.key === 'ArrowLeft') {
+                navigateVerb(-1);
+            } else if (e.key === ' ' && currentMode === 'cards') {
+                e.preventDefault();
+                toggleCardFlip();
+            }
+        });
+
+        // Initialize on page load
+        window.onload = function() {
+            updateAudioUI();
+            updateStatsUI();
+            switchMode(currentMode);
+        };
+    </script>
+</body>
+</html>
